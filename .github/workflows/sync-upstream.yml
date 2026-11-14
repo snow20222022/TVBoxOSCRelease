@@ -1,0 +1,33 @@
+name: Sync Upstream
+
+on:
+  schedule:
+    # 每天北京时间 早上 6:00 执行（UTC 22:00）
+    - cron: '0 22 * * *'
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Add Upstream Remote
+        run: |
+          git remote add upstream https://github.com/q215613905/TVBoxOSCRelease.git || true
+          git fetch upstream
+
+      - name: Sync Master
+        run: |
+          git checkout master
+          git merge upstream/master --no-edit || true
+          git push origin master
